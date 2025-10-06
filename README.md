@@ -1,1 +1,1 @@
-This is to check the ID for the penguins that are created and you should be able to see it by it's ID
+This is to check the ID for animals that are brought in or created and can see the info about them
