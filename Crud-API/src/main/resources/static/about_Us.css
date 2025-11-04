@@ -1,0 +1,57 @@
+
+body{
+    
+   margin:0;
+    text-align: center;
+    font-family: "Times New Roman", Times, serif ;
+    background-image: url("../images/Better.jpeg");
+    background-size: cover;
+    
+}
+h1,h3{
+    margin: 5px;
+    border : 2px solid black;
+    background-color: wheat;
+    width : fit-content;
+    margin-inline: auto;
+    border-radius: 8px;
+    padding: 5px;
+}
+
+
+.navigation {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 10px;
+    padding: 10px;
+    
+}
+.navigation a {
+    text-decoration: none;
+    color: black;
+    font-weight: bold;
+    font-size: 20px;
+    padding: 8px 15px;
+    border-radius: 10px;
+    background-color: peachpuff;
+    border : 2px solid black;
+    
+}
+.about_Us {
+   max-width: 600px;
+   margin: 30px auto;
+    padding: 20px;
+    border: 2px solid black;
+    background-color: burlywood;
+    border-radius: 10px;
+    text-align: left;
+    line-height: 1.6;
+}
+.about-photo {
+  display: block;
+  margin: 0 auto 20px;
+  max-width: 100%;
+  border: 2px solid black;
+  border-radius: 8px;
+}

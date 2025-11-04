@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nature Valley Farm</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+
+    <div id="homePage">
+        <h1>Welcome to Nature Valley!</h1>
+        <h4>This farm will show case different animals from other continents.</h4>
+
+        <nav class="navigation">
+            <a href="index.html">Home</a>
+            <a href="details.html">Details</a>
+            <a href="about.html">About Us</a>
+            <a href="new-animal-form.html">New Animal Form</a>
+        </nav>
+
+        <div class="search-container">
+            <div class="search-input-container">
+                <input type="text" placeholder="Search by name or breed..." class="search-bar" id="searchInput" autocomplete="off">
+                <div class="search-suggestions" id="searchSuggestions"></div>
+            </div>
+            <button type="button" id="searchButton">Search</button>
+            <button type="button" id="clearSearchButton" class="clear-search-btn" style="display: none;">Clear</button>
+        </div>
+
+        <!-- Dynamic animal containers -->
+        <div id="animalsContainer">
+            <div id="TopRow">
+                <!-- Animals will be loaded here dynamically -->
+            </div>
+            <div id="BottomRow">
+                <!-- Additional animals will be loaded here -->
+            </div>
+        </div>
+
+        <h4 id="loadingMessage">Loading animals...</h4>
+    </div>
+
+    <!-- Include the API JavaScript file -->
+    <script src="./animals-api.js"></script>
+    <script>
+                // Load animals when page loads
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                const animals = await getAllAnimals();
+                window.allAnimals = animals; // Store for search functionality
+                displayAnimalsOnHomePage(animals);
+            } catch (error) {
+                document.getElementById('loadingMessage').textContent = 'Error loading animals: ' + error.message;
+            }
+        });
+
+        // Enhanced search functionality
+        document.getElementById('searchButton').addEventListener('click', async function() {
+            performSearch();
+        });
+
+        // Clear search functionality
+        document.getElementById('clearSearchButton').addEventListener('click', function() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('clearSearchButton').style.display = 'none';
+            document.getElementById('searchSuggestions').style.display = 'none';
+            displayAnimalsOnHomePage(window.allAnimals);
+            document.getElementById('loadingMessage').textContent = '';
+        });
+
+        // Real-time search suggestions
+        document.getElementById('searchInput').addEventListener('input', function() {
+            const searchTerm = this.value.trim();
+            const clearButton = document.getElementById('clearSearchButton');
+            const suggestions = document.getElementById('searchSuggestions');
+            
+            if (searchTerm.length > 0) {
+                clearButton.style.display = 'inline-block';
+                showSearchSuggestions(searchTerm);
+            } else {
+                clearButton.style.display = 'none';
+                suggestions.style.display = 'none';
+                displayAnimalsOnHomePage(window.allAnimals);
+            }
+        });
+
+        // Enter key search
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('searchSuggestions').style.display = 'none';
+                performSearch();
+            }
+        });
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.search-input-container')) {
+                document.getElementById('searchSuggestions').style.display = 'none';
+            }
+        });
+
+        async function performSearch() {
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            if (searchTerm) {
+                try {
+                    document.getElementById('loadingMessage').textContent = 'Searching...';
+                    document.getElementById('searchSuggestions').style.display = 'none';
+                    
+                    // Search by name first, then by breed if no results
+                    let animals = await getAnimalsByName(searchTerm);
+                    
+                    // If no results by name, try searching by breed
+                    if (!animals || animals.length === 0) {
+                        animals = await getAnimalsByBreed(searchTerm);
+                    }
+                    
+                    // If still no results, try partial matching from all animals
+                    if (!animals || animals.length === 0) {
+                        animals = filterAnimalsLocally(searchTerm);
+                    }
+                    
+                    displayAnimalsOnHomePage(animals);
+                    document.getElementById('loadingMessage').textContent = '';
+                    
+                    if (!animals || animals.length === 0) {
+                        document.getElementById('loadingMessage').textContent = `No animals found for "${searchTerm}". Try a different search term.`;
+                    }
+                    
+                } catch (error) {
+                    console.error('Search error:', error);
+                    document.getElementById('loadingMessage').textContent = 'Error searching: ' + error.message;
+                }
+            } else {
+                alert('Please enter a search term');
+            }
+        }
+
+        function showSearchSuggestions(searchTerm) {
+            if (!window.allAnimals) return;
+            
+            const suggestions = document.getElementById('searchSuggestions');
+            const matches = getSearchSuggestions(searchTerm);
+            
+            if (matches.length > 0) {
+                suggestions.innerHTML = matches.map(match => 
+                    `<div class="suggestion-item" onclick="selectSuggestion('${match}')">${match}</div>`
+                ).join('');
+                suggestions.style.display = 'block';
+            } else {
+                suggestions.style.display = 'none';
+            }
+        }
+
+        function getSearchSuggestions(searchTerm) {
+            const lowerSearchTerm = searchTerm.toLowerCase();
+            const suggestions = new Set();
+            
+            window.allAnimals.forEach(animal => {
+                // Add name suggestions
+                if (animal.name && animal.name.toLowerCase().includes(lowerSearchTerm)) {
+                    suggestions.add(animal.name);
+                }
+                // Add breed suggestions
+                if (animal.breed && animal.breed.toLowerCase().includes(lowerSearchTerm)) {
+                    suggestions.add(animal.breed);
+                }
+            });
+            
+            return Array.from(suggestions).slice(0, 5); // Limit to 5 suggestions
+        }
+
+        function selectSuggestion(suggestion) {
+            document.getElementById('searchInput').value = suggestion;
+            document.getElementById('searchSuggestions').style.display = 'none';
+            performSearch();
+        }
+
+        function filterAnimalsLocally(searchTerm) {
+            if (!window.allAnimals) return [];
+            
+            const lowerSearchTerm = searchTerm.toLowerCase();
+            return window.allAnimals.filter(animal => 
+                (animal.name && animal.name.toLowerCase().includes(lowerSearchTerm)) ||
+                (animal.breed && animal.breed.toLowerCase().includes(lowerSearchTerm)) ||
+                (animal.description && animal.description.toLowerCase().includes(lowerSearchTerm))
+            );
+        }
+
+        // Custom function to display animals on home page
+        function displayAnimalsOnHomePage(animals) {
+            const topRow = document.getElementById('TopRow');
+            const bottomRow = document.getElementById('BottomRow');
+            const loadingMessage = document.getElementById('loadingMessage');
+            
+            // Clear existing content
+            topRow.innerHTML = '';
+            bottomRow.innerHTML = '';
+            loadingMessage.textContent = '';
+            
+            if (!animals || animals.length === 0) {
+                loadingMessage.textContent = 'No animals found.';
+                return;
+            }
+
+            // Split animals between top and bottom rows
+            animals.forEach((animal, index) => {
+                const animalCard = createAnimalCard(animal);
+                if (index < 3) {
+                    topRow.appendChild(animalCard);
+                } else {
+                    bottomRow.appendChild(animalCard);
+                }
+            });
+
+            // Add "More animals coming soon!" message if there are animals
+            if (animals.length > 0) {
+                const moreMessage = document.createElement('h4');
+                moreMessage.textContent = 'More animals coming soon!';
+                bottomRow.appendChild(moreMessage);
+            }
+        }
+    </script>
+
+</body>
+
+</html>
