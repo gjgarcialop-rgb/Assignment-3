@@ -26,6 +26,14 @@
         <label for="weight">Weight (kg)</label>
         <input type="number" id="weight" placeholder="Enter weight in kg" step="0.1" min="0" required>
 
+        <label for="imageUrl">Image URL (optional)</label>
+        <input type="url" id="imageUrl" placeholder="Enter image URL (e.g., https://example.com/image.jpg)" oninput="previewImage()">
+        
+        <div id="imagePreview" style="margin: 10px 0; display: none;">
+            <p style="font-weight: bold; margin-bottom: 5px;">Image Preview:</p>
+            <img id="previewImg" style="max-width: 200px; max-height: 150px; border: 2px solid black; border-radius: 8px;" alt="Image preview">
+        </div>
+
         <label for="description">Description</label>
         <textarea id="description" placeholder="Describe the animal" rows="4" required></textarea>
 
@@ -35,8 +43,68 @@
     <div id="formMessage" style="text-align: center; margin-top: 20px;"></div>
 
     <!-- Include the API JavaScript file -->
-    <script src="./animals-api.js"></script>
+    <script src="./animals-api.js?v=2"></script>
     <script>
+        // Image preview functionality
+        document.getElementById('imageUrl').addEventListener('input', function() {
+            const imageUrl = this.value.trim();
+            const preview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            
+            if (imageUrl && isValidUrl(imageUrl)) {
+                previewImg.src = imageUrl;
+                previewImg.onerror = function() {
+                    preview.style.display = 'none';
+                };
+                previewImg.onload = function() {
+                    preview.style.display = 'block';
+                };
+            } else {
+                preview.style.display = 'none';
+            }
+        });
+
+        function isValidUrl(string) {
+            try {
+                const url = new URL(string);
+                // Allow http and https protocols
+                return url.protocol === 'http:' || url.protocol === 'https:';
+            } catch (_) {
+                return false;
+            }
+        }
+
+        // Image preview functionality with better error handling
+        function previewImage() {
+            const imageUrl = document.getElementById('imageUrl').value.trim();
+            const preview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            
+            if (imageUrl && isValidUrl(imageUrl)) {
+                console.log('Attempting to load image:', imageUrl);
+                previewImg.src = imageUrl;
+                previewImg.onload = function() {
+                    console.log('Image loaded successfully:', imageUrl);
+                    preview.style.display = 'block';
+                };
+                previewImg.onerror = function() {
+                    console.error('Failed to load image:', imageUrl);
+                    console.error('This could be due to:');
+                    console.error('1. CORS restrictions (website blocking external access)');
+                    console.error('2. Invalid image format');
+                    console.error('3. Network issues');
+                    preview.style.display = 'none';
+                    alert('Unable to load image from this URL. This might be due to CORS restrictions or the image format. Try a different image URL.');
+                };
+            } else if (imageUrl && !isValidUrl(imageUrl)) {
+                console.error('Invalid URL format:', imageUrl);
+                preview.style.display = 'none';
+                alert('Please enter a valid URL starting with http:// or https://');
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
         document.getElementById('animalForm').addEventListener('submit', async function(e) {
             e.preventDefault(); // Prevent form from submitting normally
             
@@ -48,17 +116,24 @@
                 name: document.getElementById('name').value.trim(),
                 breed: document.getElementById('breed').value.trim(),
                 weight: parseFloat(document.getElementById('weight').value),
-                description: document.getElementById('description').value.trim()
+                description: document.getElementById('description').value.trim(),
+                imageUrl: document.getElementById('imageUrl').value.trim() || null
             };
             
             // Validate required fields
             if (!animalData.name || !animalData.breed || !animalData.weight || !animalData.description) {
-                formMessage.innerHTML = '<p style="color: red;">Please fill in all fields.</p>';
+                formMessage.innerHTML = '<p style="color: red;">Please fill in all required fields (Name, Breed, Weight, Description).</p>';
                 return;
             }
             
             if (animalData.weight <= 0) {
                 formMessage.innerHTML = '<p style="color: red;">Weight must be greater than 0.</p>';
+                return;
+            }
+
+            // Validate image URL if provided (less strict validation)
+            if (animalData.imageUrl && !isValidUrl(animalData.imageUrl)) {
+                formMessage.innerHTML = '<p style="color: red;">Please enter a valid image URL starting with http:// or https://, or leave it empty.</p>';
                 return;
             }
             
@@ -76,12 +151,14 @@
                     <p style="color: green;">
                         <strong>Animal "${newAnimal.name}" added successfully!</strong><br>
                         Animal ID: ${newAnimal.animalId}
+                        ${animalData.imageUrl ? '<br>Custom image URL saved!' : ''}
                     </p>
                     <p><a href="index.html">View all animals</a> | <a href="details.html?id=${newAnimal.animalId}">View ${newAnimal.name}'s details</a></p>
                 `;
                 
                 // Clear form
                 document.getElementById('animalForm').reset();
+                document.getElementById('imagePreview').style.display = 'none';
                 
             } catch (error) {
                 console.error('Error creating animal:', error);
@@ -97,8 +174,9 @@
         document.querySelectorAll('#animalForm input, #animalForm textarea').forEach(input => {
             input.addEventListener('input', function() {
                 const formMessage = document.getElementById('formMessage');
-                if (formMessage.innerHTML.includes('Please fill in all fields') || 
-                    formMessage.innerHTML.includes('Weight must be greater than 0')) {
+                if (formMessage.innerHTML.includes('Please fill in all') || 
+                    formMessage.innerHTML.includes('Weight must be greater than 0') ||
+                    formMessage.innerHTML.includes('valid image URL')) {
                     formMessage.innerHTML = '';
                 }
             });

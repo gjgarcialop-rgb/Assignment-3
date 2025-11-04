@@ -9,10 +9,12 @@ async function handleResponse(response) {
     return await response.json();
 }
 
-// GET all animals
+// GET all animals with cache busting
 async function getAllAnimals() {
     try {
-        const response = await fetch(API_BASE_URL);
+        // Add cache busting parameter
+        const timestamp = new Date().getTime();
+        const response = await fetch(`${API_BASE_URL}?_t=${timestamp}`);
         return await handleResponse(response);
     } catch (error) {
         console.error('Error fetching all animals:', error);
@@ -20,11 +22,17 @@ async function getAllAnimals() {
     }
 }
 
-// GET animal by ID
+// GET animal by ID with cache busting
 async function getAnimalById(animalId) {
+    console.log('getAnimalById called with ID:', animalId);
+    
     try {
-        const response = await fetch(`${API_BASE_URL}/${animalId}`);
-        return await handleResponse(response);
+        // Add cache busting parameter
+        const timestamp = new Date().getTime();
+        const response = await fetch(`${API_BASE_URL}/${animalId}?_t=${timestamp}`);
+        const result = await handleResponse(response);
+        console.log('getAnimalById response:', result);
+        return result;
     } catch (error) {
         console.error(`Error fetching animal with ID ${animalId}:`, error);
         throw error;
@@ -64,8 +72,10 @@ async function getHeavyAnimals(weight = 50.0) {
     }
 }
 
-// POST - Create new animal
+// CREATE - Add new animal
 async function createAnimal(animalData) {
+    console.log('createAnimal called with data:', animalData);
+    
     try {
         const response = await fetch(API_BASE_URL, {
             method: 'POST',
@@ -74,15 +84,20 @@ async function createAnimal(animalData) {
             },
             body: JSON.stringify(animalData)
         });
-        return await handleResponse(response);
+        const result = await handleResponse(response);
+        console.log('createAnimal response:', result);
+        return result;
     } catch (error) {
         console.error('Error creating animal:', error);
         throw error;
     }
 }
 
-// PUT - Update existing animal
+// UPDATE - Update existing animal
 async function updateAnimal(animalId, animalData) {
+    console.log('updateAnimal called with ID:', animalId);
+    console.log('updateAnimal called with data:', animalData);
+    
     try {
         const response = await fetch(`${API_BASE_URL}/${animalId}`, {
             method: 'PUT',
@@ -91,7 +106,9 @@ async function updateAnimal(animalId, animalData) {
             },
             body: JSON.stringify(animalData)
         });
-        return await handleResponse(response);
+        const result = await handleResponse(response);
+        console.log('updateAnimal response:', result);
+        return result;
     } catch (error) {
         console.error(`Error updating animal with ID ${animalId}:`, error);
         throw error;
@@ -119,9 +136,25 @@ async function deleteAnimal(animalId) {
 
 // Helper function to get the correct image path - completely dynamic, no hardcoding
 function getAnimalImagePath(animal) {
-    if (!animal || !animal.breed) {
+    if (!animal) {
         return './images/placeholder.jpg';
     }
+    
+    // PRIORITY 1: Check if animal has a custom image URL first
+    if (animal.imageUrl && animal.imageUrl.trim() !== '') {
+        console.log('🎯 USING CUSTOM IMAGE URL for', animal.name + ':', animal.imageUrl);
+        console.log('🎯 Full animal object:', animal);
+        return animal.imageUrl.trim();
+    }
+    
+    // PRIORITY 2: Fall back to breed-based image mapping
+    if (!animal.breed) {
+        console.log('⚠️ No breed found for', animal.name + ', using placeholder');
+        return './images/placeholder.jpg';
+    }
+    
+    console.log('📁 Using breed-based image for', animal.name + ', breed:', animal.breed);
+    console.log('📁 Animal imageUrl field value:', animal.imageUrl);
     
     // Convert breed name to match image file naming pattern
     const breed = animal.breed.trim().toLowerCase();
@@ -178,8 +211,13 @@ function createAnimalCard(animal) {
     
     const imagePath = getAnimalImagePath(animal);
     
+    // Add cache busting to image URLs
+    const imagePathWithCacheBuster = imagePath.includes('http') 
+        ? `${imagePath}?_t=${new Date().getTime()}` 
+        : imagePath;
+    
     animalDiv.innerHTML = `
-        <img src="${imagePath}" alt="${animal.name}" onerror="this.src='./images/placeholder.jpg'" />
+        <img src="${imagePathWithCacheBuster}" alt="${animal.name}" onerror="this.src='./images/placeholder.jpg'" />
         <h2>${animal.name}</h2>
         <p><i><b>${animal.breed || 'Unknown breed'}</b></i></p>
         <p><strong>Weight:</strong> ${animal.weight} kg</p>

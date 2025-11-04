@@ -32,6 +32,14 @@
         <label for="weight">Weight (kg)</label>
         <input type="number" id="weight" placeholder="Enter weight in kg" step="0.1" min="0" required>
 
+        <label for="imageUrl">Image URL (optional)</label>
+        <input type="url" id="imageUrl" placeholder="Enter image URL (e.g., https://example.com/image.jpg)" oninput="previewImage()">
+        
+        <div id="imagePreview" style="margin: 10px 0; display: none;">
+            <p style="font-weight: bold; margin-bottom: 5px;">Image Preview:</p>
+            <img id="previewImg" style="max-width: 200px; max-height: 150px; border: 2px solid black; border-radius: 8px;" alt="Image preview">
+        </div>
+
         <label for="description">Description</label>
         <textarea id="description" placeholder="Describe the animal" rows="4" required></textarea>
 
@@ -45,7 +53,7 @@
     <div id="formMessage"></div>
 
     <!-- Include the API JavaScript file -->
-    <script src="./animals-api.js"></script>
+    <script src="./animals-api.js?v=2"></script>
     <script>
         // Get animal ID from URL parameter
         const animalId = getUrlParameter('id');
@@ -71,6 +79,26 @@
                 document.getElementById('breed').value = animal.breed;
                 document.getElementById('weight').value = animal.weight;
                 document.getElementById('description').value = animal.description || '';
+                document.getElementById('imageUrl').value = animal.imageUrl || '';
+                
+                // DEBUG: Show what imageUrl was loaded from the database
+                console.log('=== ANIMAL DATA LOADED ===');
+                console.log('Full animal object:', animal);
+                console.log('Animal imageUrl from database:', animal.imageUrl);
+                console.log('Form imageUrl field set to:', document.getElementById('imageUrl').value);
+                
+                // Show image preview if there's an image URL
+                if (animal.imageUrl) {
+                    const preview = document.getElementById('imagePreview');
+                    const previewImg = document.getElementById('previewImg');
+                    previewImg.src = animal.imageUrl;
+                    previewImg.onload = function() {
+                        preview.style.display = 'block';
+                    };
+                    previewImg.onerror = function() {
+                        preview.style.display = 'none';
+                    };
+                }
                 
                 // Show form and hide loading
                 document.getElementById('loadingMessage').style.display = 'none';
@@ -89,6 +117,33 @@
             }
         }
 
+        // Image preview functionality
+        function previewImage() {
+            const imageUrl = document.getElementById('imageUrl').value.trim();
+            const preview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            
+            if (imageUrl) {
+                console.log('Attempting to load image:', imageUrl);
+                previewImg.src = imageUrl;
+                previewImg.onload = function() {
+                    console.log('Image loaded successfully:', imageUrl);
+                    preview.style.display = 'block';
+                };
+                previewImg.onerror = function() {
+                    console.error('Failed to load image:', imageUrl);
+                    console.error('This could be due to:');
+                    console.error('1. CORS restrictions (website blocking external access)');
+                    console.error('2. Invalid image format');
+                    console.error('3. Network issues');
+                    preview.style.display = 'none';
+                    alert('Unable to load image from this URL. This might be due to CORS restrictions or the image format. Try a different image URL.');
+                };
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
         function setupEventListeners() {
             // Form submission for updating
             document.getElementById('editAnimalForm').addEventListener('submit', async function(e) {
@@ -103,7 +158,8 @@
                     name: document.getElementById('name').value.trim(),
                     breed: document.getElementById('breed').value.trim(),
                     weight: parseFloat(document.getElementById('weight').value),
-                    description: document.getElementById('description').value.trim()
+                    description: document.getElementById('description').value.trim(),
+                    imageUrl: document.getElementById('imageUrl').value.trim() || null
                 };
                 
                 // Validate required fields
@@ -123,22 +179,36 @@
                     submitButton.textContent = 'Updating Animal...';
                     formMessage.innerHTML = '<p style="color: blue;">Updating animal...</p>';
                     
-                    // Submit to API
-                    const updatedAnimal = await updateAnimal(animalId, animalData);
-                    
-                    // Success message
-                    formMessage.innerHTML = `
-                        <p style="color: green;">
-                            <strong>Animal "${updatedAnimal.name}" updated successfully!</strong>
-                        </p>
-                        <p>
-                            <a href="details.html?id=${updatedAnimal.animalId}">View ${updatedAnimal.name}'s details</a> | 
-                            <a href="details.html">Back to all animals</a> |
-                            <a href="index.html">Go to homepage</a>
-                        </p>
-                    `;
-                    
-                } catch (error) {
+                console.log('=== FORM SUBMISSION DEBUG ===');
+                console.log('Form data being sent:', animalData);
+                console.log('AnimalId:', animalId);
+                console.log('ImageURL field value:', document.getElementById('imageUrl').value);
+                console.log('ImageURL in animalData:', animalData.imageUrl);
+                
+                // Submit to API
+                const updatedAnimal = await updateAnimal(animalId, animalData);
+                
+                console.log('=== UPDATE RESPONSE DEBUG ===');
+                console.log('Response from server:', updatedAnimal);
+                console.log('ImageURL in response:', updatedAnimal.imageUrl);
+                
+                // Success message with auto-redirect
+                formMessage.innerHTML = `
+                    <p style="color: green;">
+                        <strong>Animal "${updatedAnimal.name}" updated successfully!</strong>
+                    </p>
+                    <p>Redirecting to view updated animal in 2 seconds...</p>
+                    <p>
+                        <a href="details.html?id=${updatedAnimal.animalId}">View ${updatedAnimal.name}'s details now</a> | 
+                        <a href="details.html">Back to all animals</a> |
+                        <a href="index.html">Go to homepage</a>
+                    </p>
+                `;
+                
+                // Auto-redirect after 2 seconds to see the updated image
+                setTimeout(() => {
+                    window.location.href = `details.html?id=${updatedAnimal.animalId}`;
+                }, 2000);                } catch (error) {
                     console.error('Error updating animal:', error);
                     formMessage.innerHTML = `<p style="color: red;">Error updating animal: ${error.message}</p>`;
                 } finally {

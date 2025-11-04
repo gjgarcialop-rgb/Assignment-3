@@ -45,7 +45,7 @@
     </div>
 
     <!-- Include the API JavaScript file -->
-    <script src="./animals-api.js"></script>
+    <script src="./animals-api.js?v=2"></script>
     <script>
         // Check if we're viewing a specific animal
         const animalId = getUrlParameter('id');
@@ -86,9 +86,18 @@
             
             const imagePath = getAnimalImagePath(animal);
             
+            // Add cache busting to image URLs
+            const imagePathWithCacheBuster = imagePath.includes('http') 
+                ? `${imagePath}?_t=${new Date().getTime()}` 
+                : imagePath;
+            
+            console.log('🖼️ Displaying single animal:', animal.name);
+            console.log('🖼️ Image path:', imagePath);
+            console.log('🖼️ Image path with cache buster:', imagePathWithCacheBuster);
+            
             container.innerHTML = `
                 <div class="Animal_Details" style="max-width: 600px; margin: 0 auto;">
-                    <img src="${imagePath}" alt="${animal.name}" onerror="this.src='./images/placeholder.jpg'" />
+                    <img src="${imagePathWithCacheBuster}" alt="${animal.name}" onerror="this.src='./images/placeholder.jpg'" />
                     <h2>${animal.name}</h2>
                     <p><i><b>${animal.breed || 'Unknown breed'}</b></i></p>
                     <p><strong>Weight:</strong> ${animal.weight} kg</p>
