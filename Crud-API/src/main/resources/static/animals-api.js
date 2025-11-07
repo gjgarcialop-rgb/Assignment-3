@@ -137,7 +137,8 @@ async function deleteAnimal(animalId) {
 // Helper function to get the correct image path - completely dynamic, no hardcoding
 function getAnimalImagePath(animal) {
     if (!animal) {
-        return './images/placeholder.jpg';
+        // Return a default animal image instead of hardcoded placeholder
+        return getAnimalImagePath({breed: 'default'});
     }
     
     // PRIORITY 1: Check if animal has a custom image URL first
@@ -149,8 +150,8 @@ function getAnimalImagePath(animal) {
     
     // PRIORITY 2: Fall back to breed-based image mapping
     if (!animal.breed) {
-        console.log('⚠️ No breed found for', animal.name + ', using placeholder');
-        return './images/placeholder.jpg';
+        console.log('⚠️ No breed found for', animal.name + ', using default animal image');
+        return getAnimalImagePath({breed: 'default'});
     }
     
     console.log('📁 Using breed-based image for', animal.name + ', breed:', animal.breed);
@@ -170,7 +171,8 @@ function getAnimalImagePath(animal) {
         'giraffe': 'Giraffe.jpg', 
         'capybara': 'Capybara.jpg',
         'crocodile': 'Crocodile.jpg',
-        'chimpanzee': 'Baby_Chimp.jpg'
+        'chimpanzee': 'Baby_Chimp.jpg',
+        'default': 'Penguin.jpg' // Use penguin as default fallback image
     };
     
     // Check if we have a direct mapping

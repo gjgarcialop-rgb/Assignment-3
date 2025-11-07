@@ -23,11 +23,14 @@
         <div style="text-align: center; margin: 20px 0;">
             <div style="margin-bottom: 15px;">
                 <input type="text" id="breedFilter" placeholder="Filter by breed..." style="width: 200px; margin: 5px; padding: 10px; border: 3px solid black; border-radius: 8px; font-size: 14px;">
-                <button type="button" id="filterButton" style="margin: 5px; padding: 10px 15px; border: 3px solid black; border-radius: 8px; background-color: peachpuff; font-weight: bold; cursor: pointer;">Filter by Breed</button>
+                <button type="button" id="filterButton" onclick="testFilterClick()" style="margin: 5px; padding: 10px 15px; border: 3px solid black; border-radius: 8px; background-color: peachpuff; font-weight: bold; cursor: pointer;">Filter by Breed</button>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <input type="number" id="weightFilter" placeholder="Weight threshold (kg)" min="0" max="1000" step="0.1" value="50" style="width: 150px; margin: 5px; padding: 10px; border: 3px solid black; border-radius: 8px; font-size: 14px;">
+                <button type="button" id="showHeavyButton" onclick="testHeavyAnimalsClick()" style="margin: 5px; padding: 10px 15px; border: 3px solid black; border-radius: 8px; background-color: lightcoral; font-weight: bold; cursor: pointer;">Heavy Animals (Above Weight)</button>
             </div>
             <div>
-                <button type="button" id="showAllButton" style="margin: 5px; padding: 10px 15px; border: 3px solid black; border-radius: 8px; background-color: lightblue; font-weight: bold; cursor: pointer;">Show All Animals</button>
-                <button type="button" id="showHeavyButton" style="margin: 5px; padding: 10px 15px; border: 3px solid black; border-radius: 8px; background-color: lightcoral; font-weight: bold; cursor: pointer;">Heavy Animals (>50kg)</button>
+                <button type="button" id="showAllButton" onclick="testShowAllClick()" style="margin: 5px; padding: 10px 15px; border: 3px solid black; border-radius: 8px; background-color: lightblue; font-weight: bold; cursor: pointer;">Show All Animals</button>
             </div>
         </div>
 
@@ -45,18 +48,142 @@
     </div>
 
     <!-- Include the API JavaScript file -->
-    <script src="./animals-api.js?v=2"></script>
+    <script src="./animals-api.js?v=3"></script>
     <script>
+        // Simple test function to check if onclick works
+        function testFilterClick() {
+            console.log('🎯 TEST: Filter button clicked!');
+            const breed = document.getElementById('breedFilter').value.trim();
+            console.log('🎯 TEST: Breed value:', breed);
+            
+            if (breed) {
+                // Ensure we're showing the right container
+                const singleContainer = document.getElementById('singleAnimalContainer');
+                const animalsContainer = document.getElementById('animalsContainer');
+                const loadingMessage = document.getElementById('loadingMessage');
+                
+                if (singleContainer) singleContainer.style.display = 'none';
+                if (animalsContainer) animalsContainer.style.display = 'block';
+                if (loadingMessage) {
+                    loadingMessage.style.display = 'block';
+                    loadingMessage.textContent = 'Filtering animals...';
+                }
+                
+                // Test the API call directly with exact breed name
+                console.log(`📡 Making API call to: ${API_BASE_URL}/breed/${encodeURIComponent(breed)}`);
+                
+                getAnimalsByBreed(breed)
+                    .then(animals => {
+                        console.log('🎯 TEST: API returned:', animals);
+                        
+                        if (animals && animals.length > 0) {
+                            console.log(`✅ SUCCESS: Found ${animals.length} animals for breed: ${breed}`);
+                            displayAllAnimals(animals);
+                        } else {
+                            console.log(`⚠️ No animals found for breed: ${breed}`);
+                            console.log('💡 Trying case-insensitive search...');
+                            
+                            // Fallback: Get all animals and filter client-side
+                            getAllAnimals()
+                                .then(allAnimals => {
+                                    const filtered = allAnimals.filter(animal => 
+                                        animal.breed && animal.breed.toLowerCase().includes(breed.toLowerCase())
+                                    );
+                                    
+                                    console.log(`🔍 Client-side filter found ${filtered.length} animals`);
+                                    
+                                    if (filtered.length > 0) {
+                                        displayAllAnimals(filtered);
+                                    } else {
+                                        if (loadingMessage) {
+                                            loadingMessage.textContent = `No animals found for breed: ${breed}`;
+                                        }
+                                        console.log('Available breeds:', [...new Set(allAnimals.map(a => a.breed))]);
+                                    }
+                                })
+                                .catch(fallbackError => {
+                                    console.error('❌ Fallback search error:', fallbackError);
+                                });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('🎯 TEST: API error:', error);
+                        if (loadingMessage) {
+                            loadingMessage.textContent = 'Error filtering animals: ' + error.message;
+                        }
+                    });
+            } else {
+                console.log('⚠️ No breed entered for filtering');
+            }
+        }
+
+        // Test function for heavy animals filter
+        function testHeavyAnimalsClick() {
+            console.log('🎯 TEST: Heavy animals button clicked!');
+            const weightThreshold = parseFloat(document.getElementById('weightFilter').value) || 50.0;
+            console.log('🎯 TEST: Weight threshold:', weightThreshold);
+            
+            // Ensure we're showing the right container
+            const singleContainer = document.getElementById('singleAnimalContainer');
+            const animalsContainer = document.getElementById('animalsContainer');
+            const loadingMessage = document.getElementById('loadingMessage');
+            
+            if (singleContainer) singleContainer.style.display = 'none';
+            if (animalsContainer) animalsContainer.style.display = 'block';
+            if (loadingMessage) {
+                loadingMessage.style.display = 'block';
+                loadingMessage.textContent = `Loading animals heavier than ${weightThreshold}kg...`;
+            }
+            
+            getHeavyAnimals(weightThreshold)
+                .then(animals => {
+                    console.log('🎯 TEST: Heavy animals API returned:', animals);
+                    console.log(`✅ SUCCESS: Found ${animals.length} heavy animals above ${weightThreshold}kg`);
+                    displayAllAnimals(animals);
+                })
+                .catch(error => {
+                    console.error('🎯 TEST: Heavy animals API error:', error);
+                    if (loadingMessage) {
+                        loadingMessage.textContent = 'Error loading heavy animals: ' + error.message;
+                    }
+                });
+        }
+
+        // Test function for show all animals
+        function testShowAllClick() {
+            console.log('🎯 TEST: Show all animals button clicked!');
+            
+            // Ensure we're showing the right container
+            const singleContainer = document.getElementById('singleAnimalContainer');
+            const animalsContainer = document.getElementById('animalsContainer');
+            
+            if (singleContainer) singleContainer.style.display = 'none';
+            if (animalsContainer) animalsContainer.style.display = 'block';
+            
+            // Clear the URL parameters
+            window.history.pushState({}, '', 'details.html');
+            
+            loadAllAnimals();
+        }
+
         // Check if we're viewing a specific animal
         const animalId = getUrlParameter('id');
         
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 DOM Content Loaded');
+            console.log('🔍 Animal ID from URL:', animalId);
+            
             if (animalId) {
+                console.log('📍 Loading single animal with ID:', animalId);
                 loadSingleAnimal(animalId);
             } else {
+                console.log('📋 Loading all animals');
                 loadAllAnimals();
             }
+            
+            console.log('🎯 Setting up event listeners');
             setupEventListeners();
+            console.log('✅ Event listeners setup complete');
         });
 
         async function loadSingleAnimal(id) {
@@ -70,12 +197,30 @@
         }
 
         async function loadAllAnimals() {
+            console.log('📋 Loading all animals...');
+            
             try {
-                document.getElementById('loadingMessage').textContent = 'Loading all animals...';
+                // Ensure we're showing the right container
+                const singleContainer = document.getElementById('singleAnimalContainer');
+                const animalsContainer = document.getElementById('animalsContainer');
+                const loadingMessage = document.getElementById('loadingMessage');
+                
+                if (singleContainer) singleContainer.style.display = 'none';
+                if (animalsContainer) animalsContainer.style.display = 'block';
+                if (loadingMessage) {
+                    loadingMessage.style.display = 'block';
+                    loadingMessage.textContent = 'Loading all animals...';
+                }
+                
                 const animals = await getAllAnimals();
+                console.log('📋 Loaded all animals:', animals);
                 displayAllAnimals(animals);
             } catch (error) {
-                document.getElementById('loadingMessage').textContent = 'Error loading animals: ' + error.message;
+                console.error('❌ Error loading all animals:', error);
+                const loadingMessage = document.getElementById('loadingMessage');
+                if (loadingMessage) {
+                    loadingMessage.textContent = 'Error loading animals: ' + error.message;
+                }
             }
         }
 
@@ -91,13 +236,16 @@
                 ? `${imagePath}?_t=${new Date().getTime()}` 
                 : imagePath;
             
+            // Dynamic placeholder based on breed
+            const placeholderImage = getAnimalImagePath({breed: 'default'});
+            
             console.log('🖼️ Displaying single animal:', animal.name);
             console.log('🖼️ Image path:', imagePath);
             console.log('🖼️ Image path with cache buster:', imagePathWithCacheBuster);
             
             container.innerHTML = `
                 <div class="Animal_Details" style="max-width: 600px; margin: 0 auto;">
-                    <img src="${imagePathWithCacheBuster}" alt="${animal.name}" onerror="this.src='./images/placeholder.jpg'" />
+                    <img src="${imagePathWithCacheBuster}" alt="${animal.name}" onerror="this.src='${placeholderImage}'" />
                     <h2>${animal.name}</h2>
                     <p><i><b>${animal.breed || 'Unknown breed'}</b></i></p>
                     <p><strong>Weight:</strong> ${animal.weight} kg</p>
@@ -117,7 +265,15 @@
             const container = document.getElementById('animalsContainer');
             const loadingMessage = document.getElementById('loadingMessage');
             
-            loadingMessage.style.display = 'none';
+            // Check if elements exist before accessing them
+            if (!container) {
+                console.error('❌ animalsContainer not found!');
+                return;
+            }
+            
+            if (loadingMessage) {
+                loadingMessage.style.display = 'none';
+            }
             
             if (!animals || animals.length === 0) {
                 container.innerHTML = '<p style="text-align: center;">No animals found.</p>';
@@ -127,9 +283,17 @@
             let html = '<div id="column">';
             animals.forEach(animal => {
                 const imagePath = getAnimalImagePath(animal);
+                // Add cache busting to image URLs
+                const imagePathWithCacheBuster = imagePath.includes('http') 
+                    ? `${imagePath}?_t=${new Date().getTime()}` 
+                    : imagePath;
+                
+                // Dynamic placeholder based on breed
+                const placeholderImage = getAnimalImagePath({breed: 'default'});
+                
                 html += `
                     <div class="Animal_Details">
-                        <img src="${imagePath}" alt="${animal.name}" onerror="this.src='./images/placeholder.jpg'" />
+                        <img src="${imagePathWithCacheBuster}" alt="${animal.name}" onerror="this.src='${placeholderImage}'" />
                         <h2>${animal.name}</h2>
                         <p><i><b>${animal.breed || 'Unknown breed'}</b></i></p>
                         <p><strong>Weight:</strong> ${animal.weight} kg</p>
@@ -149,59 +313,124 @@
         }
 
         function setupEventListeners() {
+            console.log('🔧 Setting up event listeners...');
+            
             // Filter by breed
             const filterButton = document.getElementById('filterButton');
             const showAllButton = document.getElementById('showAllButton');
             const showHeavyButton = document.getElementById('showHeavyButton');
             const breedFilter = document.getElementById('breedFilter');
+            const weightFilter = document.getElementById('weightFilter');
+            
+            console.log('🔍 Found elements:');
+            console.log('  - filterButton:', filterButton);
+            console.log('  - showAllButton:', showAllButton);
+            console.log('  - showHeavyButton:', showHeavyButton);
+            console.log('  - breedFilter:', breedFilter);
+            console.log('  - weightFilter:', weightFilter);
             
             if (filterButton) {
+                console.log('✅ Adding click listener to filterButton');
                 filterButton.addEventListener('click', async function() {
+                    console.log('🎯 Filter button clicked!');
                     const breed = breedFilter.value.trim();
+                    console.log('🔍 Breed to filter:', breed);
+                    
                     if (breed) {
                         try {
                             document.getElementById('loadingMessage').style.display = 'block';
                             document.getElementById('loadingMessage').textContent = 'Filtering animals...';
+                            
+                            // Hide the single animal container and show the animals container
+                            document.getElementById('singleAnimalContainer').style.display = 'none';
+                            document.getElementById('animalsContainer').style.display = 'block';
+                            
+                            console.log('📡 Making API call for breed:', breed);
                             const animals = await getAnimalsByBreed(breed);
+                            console.log('📋 Received animals:', animals);
                             displayAllAnimals(animals);
                         } catch (error) {
+                            console.error('❌ Filter by breed error:', error);
                             document.getElementById('loadingMessage').textContent = 'Error filtering animals: ' + error.message;
                         }
                     } else {
                         alert('Please enter a breed to filter by');
                     }
                 });
+            } else {
+                console.error('❌ filterButton not found!');
             }
 
             // Show all animals
             if (showAllButton) {
+                console.log('✅ Adding click listener to showAllButton');
                 showAllButton.addEventListener('click', function() {
+                    console.log('🎯 Show all button clicked!');
+                    
+                    // Hide the single animal container and show the animals container
+                    document.getElementById('singleAnimalContainer').style.display = 'none';
+                    document.getElementById('animalsContainer').style.display = 'block';
+                    
+                    // Clear the URL parameters
+                    window.history.pushState({}, '', 'details.html');
+                    
                     loadAllAnimals();
                 });
+            } else {
+                console.error('❌ showAllButton not found!');
             }
 
             // Show heavy animals
             if (showHeavyButton) {
+                console.log('✅ Adding click listener to showHeavyButton');
                 showHeavyButton.addEventListener('click', async function() {
+                    console.log('🎯 Heavy animals button clicked!');
+                    
                     try {
+                        const weightThreshold = parseFloat(weightFilter.value) || 50.0;
+                        console.log('⚖️ Weight threshold:', weightThreshold);
+                        
                         document.getElementById('loadingMessage').style.display = 'block';
-                        document.getElementById('loadingMessage').textContent = 'Loading heavy animals...';
-                        const animals = await getHeavyAnimals(50.0);
+                        document.getElementById('loadingMessage').textContent = `Loading animals heavier than ${weightThreshold}kg...`;
+                        
+                        // Hide the single animal container and show the animals container
+                        document.getElementById('singleAnimalContainer').style.display = 'none';
+                        document.getElementById('animalsContainer').style.display = 'block';
+                        
+                        console.log('📡 Making API call for heavy animals with weight:', weightThreshold);
+                        const animals = await getHeavyAnimals(weightThreshold);
+                        console.log('📋 Received heavy animals:', animals);
                         displayAllAnimals(animals);
                     } catch (error) {
+                        console.error('❌ Heavy animals filter error:', error);
                         document.getElementById('loadingMessage').textContent = 'Error loading heavy animals: ' + error.message;
                     }
                 });
+            } else {
+                console.error('❌ showHeavyButton not found!');
             }
 
             // Enter key for breed filter
             if (breedFilter) {
                 breedFilter.addEventListener('keypress', function(e) {
                     if (e.key === 'Enter') {
+                        console.log('⌨️ Enter key pressed in breed filter');
                         filterButton.click();
                     }
                 });
             }
+
+            // Enter key for weight filter
+            if (weightFilter) {
+                weightFilter.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        console.log('⌨️ Enter key pressed in weight filter');
+                        showHeavyButton.click();
+                    }
+                });
+            }
+            
+            console.log('🎯 Event listeners setup completed');
         }
 
         // Delete animal function
