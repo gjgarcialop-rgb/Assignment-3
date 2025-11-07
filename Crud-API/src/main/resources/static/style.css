@@ -1,0 +1,359 @@
+body {
+    background-color: blanchedalmond;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    font-family: "Times New Roman", Times, serif;
+}
+
+/* Remove all blue borders and outlines */
+* {
+    outline: none !important;
+    border-color: black !important;
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-focus-ring-color: transparent !important;
+    -moz-outline: none !important;
+}
+
+*:focus, *:active, *:visited, *:hover {
+    outline: none !important;
+    border-color: black !important;
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-focus-ring-color: transparent !important;
+    box-shadow: none !important;
+}
+
+a, button, input, textarea {
+    outline: none !important;
+    border-color: black !important;
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-focus-ring-color: transparent !important;
+}
+
+a:focus, a:active, a:visited {
+    outline: none !important;
+    border-color: black !important;
+    -webkit-tap-highlight-color: transparent !important;
+    box-shadow: none !important;
+}
+
+button:focus, button:active {
+    outline: none !important;
+    border-color: black !important;
+    -webkit-tap-highlight-color: transparent !important;
+    box-shadow: none !important;
+}
+
+img {
+    outline: none !important;
+    border-color: black !important;
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+}
+
+/* Prevent text selection highlighting */
+::selection {
+    background: transparent !important;
+}
+
+::-moz-selection {
+    background: transparent !important;
+}
+
+h1, h4 {
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    margin-bottom: 5px;
+}
+.Animal_List img {
+    border: 3px solid black !important;
+    font-size: 15px;
+    text-align: center;
+    margin: 15px;
+    padding: 10px;
+    width: 225px;
+    height: 205px;
+    display: inline-block;
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-focus-ring-color: transparent !important;
+    box-shadow: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+}
+
+.Animal_List img:focus,
+.Animal_List img:active,
+.Animal_List img:hover {
+    border: 3px solid black !important;
+    outline: none !important;
+    box-shadow: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+}
+.Animal_List {
+    border: 3px solid black !important;
+    font-size: 15px;
+    text-align: center;
+    margin: 15px;
+    display: inline-block;
+    background: linear-gradient(135deg, burlywood 0%, #deb887 50%, #d2b48c 100%);
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+    border-radius: 12px;
+    padding: 20px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    width: 280px;
+    vertical-align: top;
+}
+
+.Animal_List:focus,
+.Animal_List:active,
+.Animal_List:hover {
+    border: 3px solid black !important;
+    outline: none !important;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3) !important;
+    transform: translateY(-2px);
+}
+h2 {
+    color: rgb(112, 53, 7);
+    font-size: 25px;
+}
+
+#homePage {
+  display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;    
+    width: 1100px;
+    border: 3px solid black;
+    background-color: wheat
+}
+
+#BottomRow {
+    width: 100%;
+    margin-top: 20px;
+    padding: 20px;
+    text-align: center;
+}
+
+#TopRow {
+    width: 100%;
+    margin-bottom: 20px;
+    padding: 20px;
+    text-align: center;
+}
+.Animal_List h2,
+.Animal_List h3,
+.Animal_List p {
+    border: 1px lightgray;
+    padding: 8px;
+    margin: 8px 0;
+    border-radius: 5px;
+}
+
+/* Enhanced styling for animal information */
+.Animal_List h2 {
+    color: rgb(112, 53, 7);
+    font-size: 28px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    margin: 15px auto 12px auto;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    width: 90%;
+    display: block;
+}
+
+.Animal_List p {
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 12px auto;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 10px 15px;
+    text-align: center;
+    width: 85%;
+    display: block;
+}
+
+.Animal_List p i b {
+    color: rgb(85, 40, 5);
+    font-size: 18px;
+    text-transform: capitalize;
+    letter-spacing: 0.5px;
+    display: block;
+    margin: 8px 0;
+}
+
+.Animal_List p strong {
+    color: rgb(70, 35, 5);
+    font-weight: bold;
+    font-size: 16px;
+    display: inline-block;
+    margin-right: 8px;
+}
+.Animal_List h3 a {
+    display: block;
+    padding: 8px 15px;
+    margin-top: 5px;
+    border-radius: 10px;
+    background-color: peachpuff;
+    color: black !important;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 20px;
+    border: 2px solid black !important;
+    outline: none !important;
+}
+
+.Animal_List h3 a:focus,
+.Animal_List h3 a:active,
+.Animal_List h3 a:visited {
+    color: black !important;
+    border: 2px solid black !important;
+    outline: none !important;
+}
+.navigation {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 10px;
+    padding: 10px;
+    
+}
+.navigation a {
+    text-decoration: none;
+    color: black !important;
+    font-weight: bold;
+    font-size: 20px;
+    padding: 8px 15px;
+    border-radius: 10px;
+    background-color: peachpuff;
+    border: 2px solid black !important;
+    outline: none !important;
+}
+
+.navigation a:focus,
+.navigation a:active,
+.navigation a:visited {
+    color: black !important;
+    border: 2px solid black !important;
+    outline: none !important;
+}
+.search-container {
+    text-align: center;
+    margin: 25px auto;
+    padding: 20px;
+    width: 450px;
+    border: 3px solid black;
+    border-radius: 15px;
+    background: linear-gradient(135deg, wheat 0%, #f5deb3 50%, #deb887 100%);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.search-container input[type="text"] {
+    width: 280px;
+    padding: 12px 15px;
+    border: 3px solid black;
+    border-radius: 10px;
+    font-size: 16px;
+    font-family: "Times New Roman", Times, serif;
+    margin-right: 10px;
+    background-color: white;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.search-container input[type="text"]:focus {
+    outline: none;
+    border-color: rgb(112, 53, 7);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1), 0 0 8px rgba(112, 53, 7, 0.3);
+}
+
+.search-container input[type="text"]::placeholder {
+    color: #888;
+    font-style: italic;
+}
+
+.search-container button {
+    padding: 12px 20px;
+    border: 3px solid black;
+    border-radius: 10px;
+    background-color: lightgreen;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 16px;
+    font-family: "Times New Roman", Times, serif;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
+    margin-left: 5px;
+}
+
+.search-container button:hover {
+    background-color: #90EE90;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.search-container button:active {
+    transform: translateY(0);
+}
+
+/* Clear search button */
+.clear-search-btn {
+    padding: 12px 15px !important;
+    background-color: lightcoral !important;
+    margin-left: 8px !important;
+}
+
+.clear-search-btn:hover {
+    background-color: #F08080 !important;
+}
+
+/* Search suggestions container */
+.search-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: white;
+    border: 2px solid black;
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.search-input-container {
+    position: relative;
+    display: inline-block;
+}
+
+.suggestion-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.2s ease;
+}
+
+.suggestion-item:hover {
+    background-color: #f0f0f0;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}

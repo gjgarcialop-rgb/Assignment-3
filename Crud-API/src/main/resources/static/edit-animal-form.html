@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Animal - Nature Valley Farm</title>
+    <link rel="stylesheet" href="./Animal-Form.css">
+</head>
+<body>
+    <nav class="navigation">
+        <a href="index.html">Home</a>
+        <a href="details.html">Details</a>
+        <a href="about.html">About Us</a>
+        <a href="new-animal-form.html">New Animal Form</a>
+    </nav>
+
+    <h1>Edit Animal</h1>
+    
+    <div id="loadingMessage">
+        <p>Loading animal data...</p>
+    </div>
+
+    <form class="animal-form" id="editAnimalForm" style="display: none; flex-direction: column; align-items: center;">
+        <input type="hidden" id="animalId">
+        
+        <label for="name">Name</label>
+        <input type="text" id="name" placeholder="Enter animal name" required>
+
+        <label for="breed">Animal Breed</label>
+        <input type="text" id="breed" placeholder="Enter animal breed" required>
+
+        <label for="weight">Weight (kg)</label>
+        <input type="number" id="weight" placeholder="Enter weight in kg" step="0.1" min="0" required>
+
+        <label for="imageUrl">Image URL (optional)</label>
+        <input type="url" id="imageUrl" placeholder="Enter image URL (e.g., https://example.com/image.jpg)" oninput="previewImage()">
+        
+        <div id="imagePreview" style="margin: 10px 0; display: none;">
+            <p style="font-weight: bold; margin-bottom: 5px;">Image Preview:</p>
+            <img id="previewImg" style="max-width: 200px; max-height: 150px; border: 2px solid black; border-radius: 8px;" alt="Image preview">
+        </div>
+
+        <label for="description">Description</label>
+        <textarea id="description" placeholder="Describe the animal" rows="4" required></textarea>
+
+        <div class="button-container">
+            <button type="submit" class="update-btn">Update Animal</button>
+            <button type="button" id="cancelButton" class="cancel-btn">Cancel</button>
+            <button type="button" id="deleteButton" class="delete-btn">Delete Animal</button>
+        </div>
+    </form>
+
+    <div id="formMessage"></div>
+
+    <!-- Include the API JavaScript file -->
+    <script src="./animals-api.js?v=2"></script>
+    <script>
+        // Get animal ID from URL parameter
+        const animalId = getUrlParameter('id');
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!animalId) {
+                document.getElementById('loadingMessage').innerHTML = 
+                    '<p style="color: red;">No animal ID provided. <a href="details.html">Go back to details page</a></p>';
+                return;
+            }
+            
+            loadAnimalData();
+            setupEventListeners();
+        });
+
+        async function loadAnimalData() {
+            try {
+                const animal = await getAnimalById(animalId);
+                
+                // Populate form fields
+                document.getElementById('animalId').value = animal.animalId;
+                document.getElementById('name').value = animal.name;
+                document.getElementById('breed').value = animal.breed;
+                document.getElementById('weight').value = animal.weight;
+                document.getElementById('description').value = animal.description || '';
+                document.getElementById('imageUrl').value = animal.imageUrl || '';
+                
+                // DEBUG: Show what imageUrl was loaded from the database
+                console.log('=== ANIMAL DATA LOADED ===');
+                console.log('Full animal object:', animal);
+                console.log('Animal imageUrl from database:', animal.imageUrl);
+                console.log('Form imageUrl field set to:', document.getElementById('imageUrl').value);
+                
+                // Show image preview if there's an image URL
+                if (animal.imageUrl) {
+                    const preview = document.getElementById('imagePreview');
+                    const previewImg = document.getElementById('previewImg');
+                    previewImg.src = animal.imageUrl;
+                    previewImg.onload = function() {
+                        preview.style.display = 'block';
+                    };
+                    previewImg.onerror = function() {
+                        preview.style.display = 'none';
+                    };
+                }
+                
+                // Show form and hide loading
+                document.getElementById('loadingMessage').style.display = 'none';
+                document.getElementById('editAnimalForm').style.display = 'flex';
+                document.getElementById('editAnimalForm').style.flexDirection = 'column';
+                document.getElementById('editAnimalForm').style.alignItems = 'center';
+                
+                // Update page title
+                document.querySelector('h1').textContent = `Edit ${animal.name}`;
+                
+            } catch (error) {
+                console.error('Error loading animal:', error);
+                document.getElementById('loadingMessage').innerHTML = 
+                    `<p style="color: red;">Error loading animal: ${error.message}</p>
+                     <a href="details.html">Go back to details page</a>`;
+            }
+        }
+
+        // Image preview functionality
+        function previewImage() {
+            const imageUrl = document.getElementById('imageUrl').value.trim();
+            const preview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            
+            if (imageUrl) {
+                console.log('Attempting to load image:', imageUrl);
+                previewImg.src = imageUrl;
+                previewImg.onload = function() {
+                    console.log('Image loaded successfully:', imageUrl);
+                    preview.style.display = 'block';
+                };
+                previewImg.onerror = function() {
+                    console.error('Failed to load image:', imageUrl);
+                    console.error('This could be due to:');
+                    console.error('1. CORS restrictions (website blocking external access)');
+                    console.error('2. Invalid image format');
+                    console.error('3. Network issues');
+                    preview.style.display = 'none';
+                    alert('Unable to load image from this URL. This might be due to CORS restrictions or the image format. Try a different image URL.');
+                };
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
+        function setupEventListeners() {
+            // Form submission for updating
+            document.getElementById('editAnimalForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const formMessage = document.getElementById('formMessage');
+                const submitButton = e.target.querySelector('button[type="submit"]');
+                
+                // Get form data
+                const animalData = {
+                    animalId: parseInt(document.getElementById('animalId').value),
+                    name: document.getElementById('name').value.trim(),
+                    breed: document.getElementById('breed').value.trim(),
+                    weight: parseFloat(document.getElementById('weight').value),
+                    description: document.getElementById('description').value.trim(),
+                    imageUrl: document.getElementById('imageUrl').value.trim() || null
+                };
+                
+                // Validate required fields
+                if (!animalData.name || !animalData.breed || !animalData.weight || !animalData.description) {
+                    formMessage.innerHTML = '<p style="color: red;">Please fill in all fields.</p>';
+                    return;
+                }
+                
+                if (animalData.weight <= 0) {
+                    formMessage.innerHTML = '<p style="color: red;">Weight must be greater than 0.</p>';
+                    return;
+                }
+                
+                try {
+                    // Disable submit button and show loading
+                    submitButton.disabled = true;
+                    submitButton.textContent = 'Updating Animal...';
+                    formMessage.innerHTML = '<p style="color: blue;">Updating animal...</p>';
+                    
+                console.log('=== FORM SUBMISSION DEBUG ===');
+                console.log('Form data being sent:', animalData);
+                console.log('AnimalId:', animalId);
+                console.log('ImageURL field value:', document.getElementById('imageUrl').value);
+                console.log('ImageURL in animalData:', animalData.imageUrl);
+                
+                // Submit to API
+                const updatedAnimal = await updateAnimal(animalId, animalData);
+                
+                console.log('=== UPDATE RESPONSE DEBUG ===');
+                console.log('Response from server:', updatedAnimal);
+                console.log('ImageURL in response:', updatedAnimal.imageUrl);
+                
+                // Success message with auto-redirect
+                formMessage.innerHTML = `
+                    <p style="color: green;">
+                        <strong>Animal "${updatedAnimal.name}" updated successfully!</strong>
+                    </p>
+                    <p>Redirecting to view updated animal in 2 seconds...</p>
+                    <p>
+                        <a href="details.html?id=${updatedAnimal.animalId}">View ${updatedAnimal.name}'s details now</a> | 
+                        <a href="details.html">Back to all animals</a> |
+                        <a href="index.html">Go to homepage</a>
+                    </p>
+                `;
+                
+                // Auto-redirect after 2 seconds to see the updated image
+                setTimeout(() => {
+                    window.location.href = `details.html?id=${updatedAnimal.animalId}`;
+                }, 2000);                } catch (error) {
+                    console.error('Error updating animal:', error);
+                    formMessage.innerHTML = `<p style="color: red;">Error updating animal: ${error.message}</p>`;
+                } finally {
+                    // Re-enable submit button
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Update Animal';
+                }
+            });
+
+            // Cancel button
+            document.getElementById('cancelButton').addEventListener('click', function() {
+                const animalName = document.getElementById('name').value;
+                if (confirm(`Cancel editing ${animalName}? Any unsaved changes will be lost.`)) {
+                    window.location.href = `details.html?id=${animalId}`;
+                }
+            });
+
+            // Delete button
+            document.getElementById('deleteButton').addEventListener('click', async function() {
+                const animalName = document.getElementById('name').value;
+                
+                if (confirm(`Are you sure you want to delete ${animalName}? This action cannot be undone.`)) {
+                    try {
+                        document.getElementById('formMessage').innerHTML = '<p style="color: blue;">Deleting animal...</p>';
+                        
+                        await deleteAnimal(animalId);
+                        
+                        document.getElementById('formMessage').innerHTML = `
+                            <p style="color: green;">
+                                <strong>Animal "${animalName}" deleted successfully!</strong>
+                            </p>
+                            <p>
+                                <a href="details.html">View all animals</a> |
+                                <a href="index.html">Go to homepage</a>
+                            </p>
+                        `;
+                        
+                        // Hide the form after successful deletion
+                        document.getElementById('editAnimalForm').style.display = 'none';
+                        
+                    } catch (error) {
+                        console.error('Error deleting animal:', error);
+                        document.getElementById('formMessage').innerHTML = 
+                            `<p style="color: red;">Error deleting animal: ${error.message}</p>`;
+                    }
+                }
+            });
+
+            // Clear error messages when user starts typing
+            document.querySelectorAll('#editAnimalForm input, #editAnimalForm textarea').forEach(input => {
+                input.addEventListener('input', function() {
+                    const formMessage = document.getElementById('formMessage');
+                    if (formMessage.innerHTML.includes('Please fill in all fields') || 
+                        formMessage.innerHTML.includes('Weight must be greater than 0')) {
+                        formMessage.innerHTML = '';
+                    }
+                });
+            });
+        }
+    </script>
+
+</body>
+</html>

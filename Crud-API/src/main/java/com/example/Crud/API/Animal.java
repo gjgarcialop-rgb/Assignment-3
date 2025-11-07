@@ -22,22 +22,26 @@ public class Animal {
     @Column(nullable = false)
     private Double weight;
 
+    private String imageUrl; // Custom image URL for the animal
+
     public Animal() {
     }
 
-    public Animal(Long animalId, String name, String breed, String description, Double weight) {
+    public Animal(Long animalId, String name, String breed, String description, Double weight, String imageUrl) {
         this.animalId = animalId;
         this.name = name;
         this.breed = breed;
         this.description = description;
         this.weight = weight;
+        this.imageUrl = imageUrl;
     }
 
-    public Animal(String name, String breed, String description, Double weight) {
+    public Animal(String name, String breed, String description, Double weight, String imageUrl) {
         this.name = name;
         this.breed = breed;
         this.description = description;
         this.weight = weight;
+        this.imageUrl = imageUrl;
     }
 
     public Long getAnimalId() {
@@ -78,6 +82,26 @@ public class Animal {
 
     public void setWeight(Double weight) {
         this.weight = weight;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    @Override
+    public String toString() {
+        return "Animal{" +
+                "animalId=" + animalId +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", breed='" + breed + '\'' +
+                ", weight=" + weight +
+                ", imageUrl='" + imageUrl + '\'' +
+                '}';
     }
 }
 

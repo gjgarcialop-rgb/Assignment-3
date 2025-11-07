@@ -96,8 +96,23 @@ public class AnimalController {
    */
   @PutMapping("/animals/{id}")
   public Animal updateAnimal(@PathVariable Long id, @RequestBody Animal animal) {
+    System.out.println("=== UPDATE ANIMAL DEBUG ===");
+    System.out.println("Received animal update for ID: " + id);
+    System.out.println("Animal object: " + animal);
+    System.out.println("Animal name: " + animal.getName());
+    System.out.println("Animal breed: " + animal.getBreed());
+    System.out.println("Animal imageUrl: " + animal.getImageUrl());
+    System.out.println("=== END DEBUG ===");
+    
     animalService.updateAnimal(id, animal);
-    return animalService.getAnimalById(id);
+    Animal updatedAnimal = animalService.getAnimalById(id);
+    
+    System.out.println("=== AFTER UPDATE DEBUG ===");
+    System.out.println("Returning updated animal: " + updatedAnimal);
+    System.out.println("Updated animal imageUrl: " + updatedAnimal.getImageUrl());
+    System.out.println("=== END AFTER UPDATE DEBUG ===");
+    
+    return updatedAnimal;
   }
 
   /**
@@ -131,5 +146,24 @@ public class AnimalController {
   @GetMapping("/animals/readFile")
   public Object readJson() {
     return animalService.readJson();
+  }
+
+  /**
+   * Test endpoint to create an animal with imageUrl for debugging
+   */
+  @PostMapping("/animals/test-image")
+  public Animal testCreateAnimalWithImage() {
+    Animal testAnimal = new Animal();
+    testAnimal.setName("Test Giraffe");
+    testAnimal.setBreed("Giraffe");
+    testAnimal.setWeight(800.0);
+    testAnimal.setDescription("Test animal with custom image URL");
+    testAnimal.setImageUrl("https://cdn.pixabay.com/photo/2024/10/24/15/55/giraffe-9146077_640.jpg");
+    
+    System.out.println("Creating test animal with imageUrl: " + testAnimal.getImageUrl());
+    Animal savedAnimal = animalService.addAnimal(testAnimal);
+    System.out.println("Saved test animal: " + savedAnimal);
+    
+    return savedAnimal;
   }
 }
